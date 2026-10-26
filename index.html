@@ -229,8 +229,17 @@ button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
     const {t,o,b,step} = S;
     const focus = step===1 ? 'o' : step===2 ? 't' : '';
     const up = S.upper;
-    const hD = up.length===2 ? up[0] : '';
-    const tD = up.length===2 ? up[1] : up;
+    // 十のくらいの計算が2けたになるときは、百のくらい → 十のくらい の順に入る
+    const two = S.top >= 10;
+    const hD = two ? (up[0] || '') : '';
+    const tD = two ? (up[1] || '') : up;
+    const upCls = which => {
+      if (which==='h' && !two) return 'slot wait';
+      if (step<2) return 'slot wait';
+      if (step>2) return 'slot ok';
+      const cur = two ? (up.length===0 ? 'h' : 't') : 't';
+      return 'slot' + (which===cur ? ' active' : '');
+    };
 
     const cls = name => {
       let c = 'slot';
@@ -258,8 +267,8 @@ button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
       L('x','<span class="num op">×</span>','under') + L('h','','under') + L('t','','under') +
         L('o',`<span class="num${step<3?' use':''}">${b}</span>`,'under') +
       L('x','') +
-        L('h', `<button class="ans ${cls('upper')}" data-slot="upper" aria-label="答えの百のくらい" ${step!==2?'disabled':''}>${hD}</button>`) +
-        L('t', `<button class="ans ${cls('upper')}" data-slot="upper" aria-label="答えの十のくらい" ${step!==2?'disabled':''}>${tD}</button>`) +
+        L('h', `<button class="ans ${upCls('h')}" data-slot="upper" aria-label="答えの百のくらい" ${step!==2?'disabled':''}>${hD}</button>`) +
+        L('t', `<button class="ans ${upCls('t')}" data-slot="upper" aria-label="答えの十のくらい" ${step!==2?'disabled':''}>${tD}</button>`) +
         L('o', `<button class="ans ${cls('ones')}" data-slot="ones" aria-label="答えの一のくらい" ${step!==1?'disabled':''}>${S.ones}</button>`);
 
     document.querySelectorAll('#steps li').forEach(li => {
@@ -269,7 +278,7 @@ button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 
     $('goal').innerHTML =
       step===1 ? `${o} × ${b} の答えを、<em>くり上がり</em>（ピンクのわく）→ 下のマス の じゅんに入れよう` :
-      step===2 ? `${t} × ${b} に、<em>くり上がりの ${S.c}</em> をたした数を入れよう` :
+      step===2 ? `${t} × ${b} に、<em>くり上がりの ${S.c}</em> をたした数を入れよう` + (S.top>=10 ? '（2けたになるので、百のくらいから）' : '') :
                  `${10*t+o} × ${b} = ${S.answer}　こうげきの じゅんびOK！`;
 
     let memo = '';
@@ -322,7 +331,7 @@ button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
       if (S.active==='carry' && S.ones==='') S.active = 'ones';
       else if (S.active==='ones' && S.carry==='') S.active = 'carry';
     } else if (S.step===2){
-      if (S.clearNext || S.upper.length>=2){ S.upper=''; S.clearNext=false; }
+      if (S.clearNext || S.upper.length >= (S.top>=10 ? 2 : 1)){ S.upper=''; S.clearNext=false; }
       S.upper += d;
     }
     render();
@@ -374,7 +383,8 @@ button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
     }
 
     if (S.step===2){
-      if (S.upper===''){ say('十のくらいの マスに 数を 入れてね。', 'hint'); flash('upper'); return; }
+      if (S.upper===''){ say(S.top>=10 ? '百のくらいの マスから 数を 入れてね。' : '十のくらいの マスに 数を 入れてね。', 'hint'); flash('upper'); return; }
+      if (S.top>=10 && S.upper.length===1){ say('十のくらいの マスにも 数を 入れてね。', 'hint'); flash('upper'); return; }
       const v = +S.upper;
       if (v===top){
         S.step=3; render();
@@ -385,7 +395,6 @@ button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
       render();
       if (m>=3) say(`${t}×${b}=${tb}、${tb}＋${c}=${top}。${top} を 入れよう。`, 'hint');
       else if (v===tb) say(`九九は 合っているよ！ くり上がりの ${c} を たすのを わすれていないかな？`, 'hint');
-      else if (top>=10 && v===top%10) say('おしい！ 答えが 2けたに なったら、百のくらいまで そのまま 書くよ。', 'hint');
       else if (Math.abs(v-top)<=2) say(`おしい！ ${t}×${b} の答えに ${c} を たす 計算を もう一度 たしかめよう。`, 'hint');
       else if (m===1) say(`十のくらいの 九九、${t}×${b} を もう一度 たしかめよう。（${t}のだん）`, 'hint');
       else say(`${t}×${b}=${tb} だよ。それに くり上がりの ${c} を たそう。`, 'hint');
