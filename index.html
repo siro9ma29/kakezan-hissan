@@ -280,8 +280,10 @@ button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
     while (!test(t,o,b) || key===S.lastKey);
     S.lastKey = key;
     const p1 = o*b, c = Math.floor(p1/10), d1 = p1 % 10, tb = t*b;
-    Object.assign(S, { t,o,b,p1,c,d1,tb, top:tb+c, answer:(10*t+o)*b, cs:lv.carrySlot,
-      step:1, ones:'', carry:'', upper:'', active: lv.carrySlot ? 'carry' : 'ones',
+    // くり上がりがない問題（まぜる問題で九九の答えが1けた）では、くり上がりのわくを使わない
+    const cs = lv.carrySlot && c>0;
+    Object.assign(S, { t,o,b,p1,c,d1,tb, top:tb+c, answer:(10*t+o)*b, cs,
+      step:1, ones:'', carry:'', upper:'', active: cs ? 'carry' : 'ones',
       clearNext:false, miss:[0,0], missTotal:0 });
     render();
   }
@@ -470,22 +472,6 @@ button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
         if (+S.ones===d1) return toStep2();
         const m = ++S.miss[0]; S.missTotal++;
         render(); say(onesHint(m), 'hint'); flash('ones'); return;
-      }
-      // まぜる問題で、九九の答えが1けた（くり上がりなし）のとき
-      if (c===0){
-        if (S.ones==='' && S.carry===''){ say(`${o}×${b} の 答えを 入れてね。2けたなら くり上がりから、1けたなら 下のマスに 入れよう。`, 'hint'); flash('ones'); return; }
-        if (S.ones==='' && +S.carry===d1){
-          S.carry=''; S.active='ones'; render();
-          say('九九の 答えが 1けたの ときは、くり上がりは ないよ。下のマスに 入れよう。', 'hint'); flash('ones'); return;
-        }
-        const okC0 = S.carry==='' || S.carry==='0';
-        if (S.ones!=='' && +S.ones===d1 && okC0) return toStep2();
-        const m = ++S.miss[0]; S.missTotal++;
-        if (S.ones!=='' && +S.ones===d1){
-          S.carry=''; S.active='ones'; render();
-          say(`一のくらいは 合っているよ！ ${o}×${b}=${p1} は 1けたなので、くり上がりは ないよ。`, 'hint'); flash('carry'); return;
-        }
-        S.active='ones'; render(); say(onesHint(m), 'hint'); flash('ones'); return;
       }
       // くり上がりがあるとき
       if (S.ones==='' && S.carry===''){ S.active='carry'; render(); say(`${o}×${b} の答えの 十のくらいの数から、ピンクのわくに 入れてね。`, 'hint'); flash('carry'); return; }
