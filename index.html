@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>マス・モンスターズ</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=M+PLUS+Rounded+1c:wght@500;800&display=swap">
 <style>
 *{box-sizing:border-box}
 body{margin:0}
@@ -18,8 +15,9 @@ body{margin:0}
   --gold:#ffc83d; --gold-deep:#b77f00; --carry:#e0457c; --carry-soft:#fde6ef;
   --focus:#2f6df6; --focus-soft:#e2ebff; --ok:#1c9a57; --ok-soft:#dcf4e6; --bad:#d8334a;
   --hp:#47d27c; --key:#ffffff; --key-edge:#bccdd4; --white:#ffffff;
-  --f-ui:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","BIZ UDPGothic","Meiryo",sans-serif;
-  --f-pixel:"DotGothic16","M PLUS Rounded 1c","MS Gothic",monospace;
+  /* 外部フォントは使わず、端末に入っているフォントだけを使う（オフラインで同じ見た目にするため） */
+  --f-ui:"Hiragino Maru Gothic ProN","BIZ UDPGothic","Meiryo","Noto Sans JP","Noto Sans CJK JP",sans-serif;
+  --f-pixel:"BIZ UDGothic","MS Gothic","Osaka-Mono","Noto Sans Mono CJK JP",monospace;
   --c:clamp(50px,14.5vw,66px);
   color-scheme:light;
 }
@@ -162,6 +160,19 @@ button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .stage-card .clear b{display:block;font-size:22px;font-weight:400}
 .stages-back{align-self:center;font-family:var(--f-pixel);font-size:15px;color:var(--white);background:transparent;
   border:2px solid var(--star);border-radius:999px;padding:6px 20px}
+
+/* ---------- タブレットの縦画面：バトルの空きを ちぢめて、スクロールなしで1画面に入れる ---------- */
+@media (orientation:portrait) and (min-width:600px){
+  :root{--c:clamp(44px,min(10vw,5.6vh),72px)}
+  .app{height:100vh;height:100dvh;padding-block:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-bottom,0px))}
+  .battle{flex:1 1 auto;min-height:0}
+  .stage{flex:1;height:auto;min-height:70px}
+  .monster{width:clamp(66px,8.5vh,150px)}
+  .stage::after{bottom:2px;width:clamp(110px,17vh,200px);height:14px}
+  .sheet,.pad,.attack{flex:none}
+  .pad{grid-auto-rows:clamp(44px,5vh,64px)}
+  .attack{height:clamp(52px,5.6vh,66px)}
+}
 
 /* ---------- タブレットの横画面：左＝バトル／中＝ひっ算／右＝テンキーとこうげき。スクロールなしで1画面に入れる ---------- */
 @media (orientation:landscape) and (min-width:820px){
